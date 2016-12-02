@@ -16,6 +16,8 @@ class Main extends PluginBase implements Listener{
    public function onEnable(){
 	   if(!$this->getServer()->getPluginManager()->getPlugin("PurePerms")){
 		   $this->getLogger()->error("Установите PurePerms!");
+		   $this->getServer ()->getPluginManager ()->disablePlugin ( $this );
+		   return;
 	   }
        @mkdir($this->getDataFolder());
        $this->getServer()->getPluginManager()->registerEvents($this, $this);
@@ -23,18 +25,21 @@ class Main extends PluginBase implements Listener{
        $this->config = new Config($this->getDataFolder() . "config.yml" , Config::YAML, Array(
 	   'token' => 'abcd',
 	   'group' => '1234',
-	   'debug' => false));
+	   'debug' => false,
+	   'text' => 'Игрок %name% получил привилегию %group%'));
        $this->token = $this->config->get("token");
        $this->vkGroup = $this->config->get("group");
 	   $this->debug = $this->config->get("debug");
+	   $this->text = $this->config->get("text");
    }
 
    public function GroupChanged(PPGroupChangedEvent $event){
        $group = $event->getGroup();
        $player = $event->getPlayer();
        $name = $player->getName();
-       $this->getLogger()->info("Игрок ". $name." сменил группу на ". $group);
-       $this->wallPost("Игрок ". $name." сменил группу на ". $group);
+	   $text = str_ireplace(["%name%", "%group%"], [$name, $group], $this->text);
+	   $this->getLogger()->info($text);
+       $this->wallPost($text);
    }
 
    public function wallPost($text) {
